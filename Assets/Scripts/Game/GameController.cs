@@ -33,7 +33,7 @@ namespace Game
         
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.KeypadEnter) && !_entering)
+            if (Input.GetKeyDown(KeyCode.Return) && !_entering)
             {
                 StartCoroutine(EnterWord());
             }
@@ -84,6 +84,7 @@ namespace Game
                 LeanTween.value(gameObject, f => characterErrorText.alpha = f, 0, 1, 0.5f);
                 yield return new WaitForSeconds(2f);
                 LeanTween.value(gameObject, f => characterErrorText.alpha = f, 1, 0, 0.5f);
+                _entering = false;
                 yield break;
             }
             
@@ -131,6 +132,8 @@ namespace Game
                 LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 0, 1, 0.5f);
                 yield return new WaitForSeconds(2.5f);
                 LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 1, 0, 0.5f);
+                yield return new WaitForSeconds(0.5f);
+                _entering = false;
             }
         }
 

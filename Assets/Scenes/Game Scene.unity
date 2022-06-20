@@ -463,7 +463,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -391, y: -1.875}
+  m_AnchoredPosition: {x: -361, y: -6.675}
   m_SizeDelta: {x: 283.41, y: 28.44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &439845692
@@ -1123,7 +1123,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390.99997, y: -1.8748779}
+  m_AnchoredPosition: {x: -369, y: -6.675}
   m_SizeDelta: {x: 283.41, y: 28.44}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &694477201
@@ -3036,9 +3036,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Serdlex
-
-    (Wordle but Sex)'
+  m_text: Serdlex
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1e577ec958dd0124193c785978891dcc, type: 2}
   m_sharedMaterial: {fileID: -824742602858804349, guid: 1e577ec958dd0124193c785978891dcc, type: 2}
