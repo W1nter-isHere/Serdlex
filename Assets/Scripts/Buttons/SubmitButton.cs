@@ -47,9 +47,9 @@ namespace Buttons
 
             var v = !isWord && validate.isOn;
 
+            // TODO: FIX THIS??????????????????????????
             var raiseEventOptions = new RaiseEventOptions
             {
-                Receivers = ReceiverGroup.Others,
                 TargetActors = new[]
                 {
                     GlobalRandom.Instance.RandUniqueInt(0, PhotonNetwork.CurrentRoom.PlayerCount - 1)

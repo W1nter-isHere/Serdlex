@@ -16,7 +16,7 @@ namespace Buttons
 
         public void Options()
         {
-        
+            SceneTransitioner.Instance.TransitionToScene(9);
         }
 
         public void Quit()

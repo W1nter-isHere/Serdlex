@@ -35,4 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Submit Word Scene.unity
     guid: 09367c651d48687428f26c2b4aff9102
+  - enabled: 1
+    path: Assets/Scenes/Settings Scene.unity
+    guid: dc58a9b9ce1272b40a47667d278e2425
   m_configObjects: {}
