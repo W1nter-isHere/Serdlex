@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Buttons;
 using ExitGames.Client.Photon;
 using Game;
 using JetBrains.Annotations;
@@ -8,6 +9,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Rooms
 {
@@ -19,6 +21,8 @@ namespace Rooms
         [SerializeField] private TextMeshProUGUI readyButton;
         [SerializeField] private CanvasGroup starting;
 
+        [SerializeField] private Slider chancesSlider;
+        
         private Dictionary<string, KeyValuePair<int, GameObject>> _players;
         private List<string> _readiedPlayers;
         private int _gameMode;
@@ -104,6 +108,12 @@ namespace Rooms
                     _gameMode = (int) photonEvent.CustomData;
                     GlobalData.Set("currGameMode", _gameMode);
                     break;
+                case PhotonEvents.RoomChancesSliderChanged:
+                    var data = (float) photonEvent.CustomData;
+                    chancesSlider.SetValueWithoutNotify(data);
+                    chancesSlider.GetComponent<SliderTextUpdater>().ValueChanged();
+                    GlobalData.Set("roomChances", data);
+                    break;
             }
         }
 
@@ -117,10 +127,17 @@ namespace Rooms
             }
         }
 
+        public void ChancesSliderChanged(float value)
+        {
+            var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
+            PhotonNetwork.RaiseEvent(PhotonEvents.RoomChancesSliderChanged, value, raiseEventOptions, SendOptions.SendReliable);
+            GlobalData.Set("roomChances", value);
+        }
+        
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count && count > 1)
+            if (count >= _players.Count /* && count > 1*/)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();

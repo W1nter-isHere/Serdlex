@@ -36,7 +36,7 @@ namespace Buttons
 
         public void Submit()
         {
-            var game = new WordleGame(word.text, validate.isOn, 6);
+            var game = new WordleGame(word.text, validate.isOn, (int) GlobalData.GetOrDefault("roomChances", () => 6f));
             GlobalData.Set("submittedGame", game);
             SceneTransitioner.Instance.TransitionToScene(10);
         }
