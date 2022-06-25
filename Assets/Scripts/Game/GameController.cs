@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,7 +19,7 @@ namespace Game
         [SerializeField] private CanvasGroup invalidWordErrorText;
 
         [SerializeField] private GameOverScreen win;
-        [SerializeField] private GameOverScreen lose;
+        [SerializeField] private LoseScreen lose;
 
         private int _characters;
         private int _chances;
@@ -43,7 +42,6 @@ namespace Game
         {
             win.gameObject.SetActive(false);
             lose.gameObject.SetActive(false);
-            
             Init(GlobalData.GetOrDefault("wordleGame", () => WordleGame.Default));
         }
 
@@ -56,6 +54,8 @@ namespace Game
             
             _chance = 0;
             _lastText = "";
+
+            characterErrorText.GetComponent<TextMeshProUGUI>().text = "Enter at least " + _characters + " characters";
             
             CreateRows();
         }
@@ -121,7 +121,7 @@ namespace Game
             if (string.IsNullOrEmpty(dataStr)) yield break;
             
             var data = JsonConvert.DeserializeObject<dynamic>(dataStr);
-                
+
             if (data is JArray)
             {
                 StartCoroutine(TestWord(word));
@@ -196,6 +196,7 @@ namespace Game
             if (_chance >= _chances)
             {
                 lose.gameObject.SetActive(true);
+                lose.WordWas(_chosenWord);
                 lose.GameOver();
             }
         }

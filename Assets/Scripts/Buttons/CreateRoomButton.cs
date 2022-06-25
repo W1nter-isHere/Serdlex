@@ -34,7 +34,6 @@ namespace Buttons
         {
             GlobalData.ClearData();
             
-            // TODO Fix gamemode
             GlobalData.Set("currPlayerName", nameInput.text);
             GlobalData.Set("currRoomCode", roomName.text);
             GlobalData.Set("currGameMode", gameMode.value);

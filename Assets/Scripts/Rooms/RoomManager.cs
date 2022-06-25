@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ExitGames.Client.Photon;
+using Game;
 using JetBrains.Annotations;
 using Photon.Pun;
 using Photon.Realtime;
@@ -27,7 +28,7 @@ namespace Rooms
         {
             _players = new Dictionary<string, KeyValuePair<int, GameObject>>();
             _readiedPlayers = new List<string>();
-            _gameMode = GlobalData.GetOrDefault("currGameMode", () => -1);
+            _gameMode = GlobalData.GetOrDefault("currGameMode", () => GameModes.Invalid);
             
             starting.gameObject.SetActive(false);
             roomCode.text = "Room Code: " + GlobalData.GetOrDefault("currRoomCode", () => "!ERROR!");
@@ -70,6 +71,10 @@ namespace Rooms
 
                     var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
                     PhotonNetwork.RaiseEvent(PhotonEvents.PlayersInRoom, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
+                    
+                    if (_gameMode == GameModes.Invalid) break;
+                    PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
+
                     break;
                 }
                 case PhotonEvents.PlayersInRoom:
@@ -112,13 +117,6 @@ namespace Rooms
             }
         }
 
-        public override void OnPlayerEnteredRoom(Player newPlayer)
-        {
-            if (_gameMode == -1) return;
-            var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
-            PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
-        }
-
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
@@ -149,11 +147,10 @@ namespace Rooms
             text.text = "1";
             yield return new WaitForSeconds(3f);
 
-            // TODO GAMEMODE
-            // if (_gameMode == 0)
-            // {
+            if (_gameMode == GameModes.Individuals)
+            {
                 SceneTransitioner.Instance.TransitionToScene(8);
-            // }
+            }
         }
 
         public void Ready()

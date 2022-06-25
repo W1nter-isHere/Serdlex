@@ -17,7 +17,8 @@ namespace Rooms
         
         private List<WordleGame> _wordles;
         private Coroutine _coroutine;
-        
+        private bool _transitioning;
+
         private void Start()
         {
             _coroutine = StartCoroutine(ChangeText());
@@ -45,10 +46,11 @@ namespace Rooms
 
         private void Update()
         {
-            if (_wordles.Count == PhotonNetwork.CurrentRoom.PlayerCount)
+            if (_wordles.Count >= PhotonNetwork.CurrentRoom.PlayerCount && !_transitioning)
             {
                 GlobalData.Set("wordleGame", _wordles[Random.Range(1, _wordles.Count)]);
                 SceneTransitioner.Instance.TransitionToScene(2);
+                _transitioning = true;
             }
         }
 
