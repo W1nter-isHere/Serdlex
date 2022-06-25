@@ -122,7 +122,7 @@ namespace Rooms
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count /*&& count > 1*/)
+            if (count >= _players.Count && count > 1)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();
