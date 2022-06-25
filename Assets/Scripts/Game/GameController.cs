@@ -41,19 +41,18 @@ namespace Game
 
         private void Start()
         {
-            var w = GlobalData.Data.ContainsKey("gameWordChosen") ? (string) GlobalData.Data["gameWordChosen"] : "genna";
-            var c = GlobalData.Data.ContainsKey("gameChances") ? (int) GlobalData.Data["gameChances"] : 6;
-            var v = GlobalData.Data.ContainsKey("gameValidateWord") && (bool) GlobalData.Data["gameValidateWord"];
+            win.gameObject.SetActive(false);
+            lose.gameObject.SetActive(false);
             
-            Init(w, c, v);
+            Init(GlobalData.GetOrDefault("wordleGame", () => WordleGame.Default));
         }
 
-        public void Init(string word, int chancesCount, bool validWord)
+        public void Init(WordleGame game)
         {
-            _chosenWord = word.ToLower().Replace(" ", "");
+            _chosenWord = game.Word;
             _characters = _chosenWord.Length;
-            _chances = chancesCount;
-            _checkWord = validWord;
+            _chances = game.Chances;
+            _checkWord = game.ValidateWord;
             
             _chance = 0;
             _lastText = "";
@@ -187,6 +186,7 @@ namespace Game
             
             if (successes == _characters)
             {
+                win.gameObject.SetActive(true);
                 win.GameOver();
                 yield break;
             }
@@ -195,6 +195,7 @@ namespace Game
 
             if (_chance >= _chances)
             {
+                lose.gameObject.SetActive(true);
                 lose.GameOver();
             }
         }

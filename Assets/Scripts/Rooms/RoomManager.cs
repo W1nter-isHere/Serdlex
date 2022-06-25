@@ -27,14 +27,14 @@ namespace Rooms
         {
             _players = new Dictionary<string, KeyValuePair<int, GameObject>>();
             _readiedPlayers = new List<string>();
-            _gameMode = GlobalData.Data.ContainsKey("currGameMode") ? (int) GlobalData.Data["currGameMode"] : -1;
+            _gameMode = GlobalData.GetOrDefault("currGameMode", () => -1);
             
             starting.gameObject.SetActive(false);
-            roomCode.text = "Room Code: " + GlobalData.Data["currRoomCode"];
+            roomCode.text = "Room Code: " + GlobalData.GetOrDefault("currRoomCode", () => "!ERROR!");
 
             // add this
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.All};
-            PhotonNetwork.RaiseEvent(0, new [] {(string) GlobalData.Data["currPlayerName"]}, raiseEventOptions, SendOptions.SendReliable);
+            PhotonNetwork.RaiseEvent(PhotonEvents.NewPlayerJoinedRoom, new [] {GlobalData.GetOrDefault("currPlayerName", () => "Unknown Player")}, raiseEventOptions, SendOptions.SendReliable);
         }
 
         private void PlayerJoined(string p, int sender)
@@ -58,7 +58,7 @@ namespace Rooms
 
             switch (c)
             {
-                case 0:
+                case PhotonEvents.NewPlayerJoinedRoom:
                 {
                     var p = (string[]) photonEvent.CustomData;
 
@@ -69,10 +69,10 @@ namespace Rooms
                     }
 
                     var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
-                    PhotonNetwork.RaiseEvent(1, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
+                    PhotonNetwork.RaiseEvent(PhotonEvents.PlayersInRoom, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
                     break;
                 }
-                case 1:
+                case PhotonEvents.PlayersInRoom:
                     var p3 = (string[]) photonEvent.CustomData;
                     foreach (var p1 in p3)
                     {
@@ -81,7 +81,7 @@ namespace Rooms
                     }
 
                     break;
-                case 2:
+                case PhotonEvents.ToggleReady:
                     var p2 = (string) photonEvent.CustomData;
                     _players[p2].Value.GetComponent<PlayerRep>().Ready();
                     if (_readiedPlayers.Contains(p2))
@@ -95,7 +95,7 @@ namespace Rooms
 
                     CheckGame();
                     break;
-                case 3:
+                case PhotonEvents.InitializeGame:
                     _gameMode = (int) photonEvent.CustomData;
                     GlobalData.Set("currGameMode", _gameMode);
                     break;
@@ -116,16 +116,17 @@ namespace Rooms
         {
             if (_gameMode == -1) return;
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
-            PhotonNetwork.RaiseEvent(3, _gameMode, raiseEventOptions, SendOptions.SendReliable);
+            PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
         }
 
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count && count > 1)
+            if (count >= _players.Count /*&& count > 1*/)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();
+                GetComponent<AudioSource>().Play();
                 text.text = "3";
                 _startingSequence = StartGame(text);
                 StartCoroutine(_startingSequence);
@@ -134,6 +135,7 @@ namespace Rooms
             {
                 StopCoroutine(_startingSequence);
                 _startingSequence = null;
+                GetComponent<AudioSource>().Stop();
                 starting.gameObject.SetActive(false);
             }
         }
@@ -141,13 +143,13 @@ namespace Rooms
         private IEnumerator StartGame(TMP_Text text)
         {
             LeanTween.value(gameObject, f => starting.alpha = f, 0, 1, 0.2f);
-            
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
             text.text = "2";
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
             text.text = "1";
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(3f);
 
+            // TODO GAMEMODE
             // if (_gameMode == 0)
             // {
                 SceneTransitioner.Instance.TransitionToScene(8);
@@ -158,7 +160,7 @@ namespace Rooms
         {
             readyButton.text = readyButton.text == "Ready" ? "Unready" : "Ready";
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.All};
-            PhotonNetwork.RaiseEvent(2, GlobalData.Data["currPlayerName"], raiseEventOptions, SendOptions.SendReliable);
+            PhotonNetwork.RaiseEvent(PhotonEvents.ToggleReady, GlobalData.GetOrDefault("currPlayerName", () => "Unknown Player"), raiseEventOptions, SendOptions.SendReliable);
         }
     }
 }

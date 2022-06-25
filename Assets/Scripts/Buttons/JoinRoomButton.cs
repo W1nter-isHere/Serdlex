@@ -31,7 +31,7 @@ namespace Buttons
 
         public override void OnJoinedRoom()
         {
-            GlobalData.Data.Clear();
+            GlobalData.ClearData();
             
             GlobalData.Set("currPlayerName", nameInput.text);
             GlobalData.Set("currRoomCode", codeInput.text);

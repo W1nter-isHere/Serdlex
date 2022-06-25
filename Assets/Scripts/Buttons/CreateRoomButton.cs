@@ -32,7 +32,7 @@ namespace Buttons
 
         public override void OnJoinedRoom()
         {
-            GlobalData.Data.Clear();
+            GlobalData.ClearData();
             
             // TODO Fix gamemode
             GlobalData.Set("currPlayerName", nameInput.text);

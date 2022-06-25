@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 
 public static class GlobalData
 {
-    public static readonly Dictionary<string, object> Data;
+    private static readonly Dictionary<string, object> Data;
 
     static GlobalData()
     {
@@ -13,5 +16,20 @@ public static class GlobalData
     {
         Data.Remove(key);
         Data.Add(key, value);
+    }
+
+    public static T GetOrDefault<T>(string key, Func<T> constructor)
+    {
+        if (Data.ContainsKey(key))
+        {
+            return (T) Data[key];
+        }
+
+        return constructor();
+    }
+
+    public static void ClearData()
+    {
+        Data.Clear();
     }
 }
