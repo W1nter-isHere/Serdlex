@@ -49,6 +49,7 @@ namespace Rooms
 
         private void PlayerJoined(string p, int sender)
         {
+            if (_players.ContainsKey(p)) return;
             var i = Instantiate(playerRepPrefab, playerList);
             i.GetComponentInChildren<TextMeshProUGUI>().text = p;
             _players.Add(p, new KeyValuePair<int, GameObject>(sender, i));
