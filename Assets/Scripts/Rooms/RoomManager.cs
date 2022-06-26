@@ -22,6 +22,7 @@ namespace Rooms
         [SerializeField] private CanvasGroup starting;
 
         [SerializeField] private Slider chancesSlider;
+        [SerializeField] private Toggle toggle;
         
         private Dictionary<string, KeyValuePair<int, GameObject>> _players;
         private List<string> _readiedPlayers;
@@ -36,6 +37,10 @@ namespace Rooms
             
             starting.gameObject.SetActive(false);
             roomCode.text = "Room Code: " + GlobalData.GetOrDefault("currRoomCode", () => "!ERROR!");
+
+            // default settings
+            GlobalData.Set("gameValidateWord", true);
+            GlobalData.Set("roomChances", 6f);
 
             // add this
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.All};
@@ -69,13 +74,13 @@ namespace Rooms
 
                     foreach (var p1 in p)
                     {
-                        if (_players.ContainsKey(p1)) continue;
                         PlayerJoined(p1, actorNum);
                     }
 
                     var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
                     PhotonNetwork.RaiseEvent(PhotonEvents.PlayersInRoom, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
-                    
+                    PhotonNetwork.RaiseEvent(PhotonEvents.SyncReadyWithNewPlayer, _readiedPlayers.ToArray(), raiseEventOptions, SendOptions.SendReliable);
+
                     if (_gameMode == GameModes.Invalid) break;
                     PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
 
@@ -83,9 +88,9 @@ namespace Rooms
                 }
                 case PhotonEvents.PlayersInRoom:
                     var p3 = (string[]) photonEvent.CustomData;
+                    
                     foreach (var p1 in p3)
                     {
-                        if (_players.ContainsKey(p1)) continue;
                         PlayerJoined(p1, actorNum);
                     }
 
@@ -101,18 +106,26 @@ namespace Rooms
                     {
                         _readiedPlayers.Add(p2);
                     }
-
                     CheckGame();
                     break;
                 case PhotonEvents.InitializeGame:
                     _gameMode = (int) photonEvent.CustomData;
                     GlobalData.Set("currGameMode", _gameMode);
                     break;
+                case PhotonEvents.SyncReadyWithNewPlayer:
+                    var readiedPlayers = (string[]) photonEvent.CustomData;
+                    _readiedPlayers = new List<string>(readiedPlayers);
+                    break;
                 case PhotonEvents.RoomChancesSliderChanged:
                     var data = (float) photonEvent.CustomData;
                     chancesSlider.SetValueWithoutNotify(data);
                     chancesSlider.GetComponent<SliderTextUpdater>().ValueChanged();
                     GlobalData.Set("roomChances", data);
+                    break;
+                case PhotonEvents.ValidateWordToggleChanged:
+                    var validateWord = (bool) photonEvent.CustomData;
+                    toggle.SetIsOnWithoutNotify(validateWord);
+                    GlobalData.Set("gameValidateWord", validateWord);
                     break;
             }
         }
@@ -133,11 +146,18 @@ namespace Rooms
             PhotonNetwork.RaiseEvent(PhotonEvents.RoomChancesSliderChanged, value, raiseEventOptions, SendOptions.SendReliable);
             GlobalData.Set("roomChances", value);
         }
+
+        public void ValidateWordToggleChanged(bool value)
+        {
+            var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
+            PhotonNetwork.RaiseEvent(PhotonEvents.ValidateWordToggleChanged, value, raiseEventOptions, SendOptions.SendReliable);
+            GlobalData.Set("gameValidateWord", value);
+        }
         
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count /* && count > 1*/)
+            if (count >= _players.Count /*&& count > 1*/)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();

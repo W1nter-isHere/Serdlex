@@ -50,7 +50,8 @@ namespace Game
             _chosenWord = game.Word;
             _characters = _chosenWord.Length;
             _chances = game.Chances;
-            _checkWord = game.ValidateWord;
+
+            _checkWord = GlobalData.GetOrDefault("gameValidateWord", () => false);
             
             _chance = 0;
             _lastText = "";

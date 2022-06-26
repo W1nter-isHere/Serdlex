@@ -9,5 +9,7 @@
         public const byte GameSubmitted = 4;
         public const byte ExistingGamesSubmitted = 5;
         public const byte RoomChancesSliderChanged = 6;
+        public const byte ValidateWordToggleChanged = 7;
+        public const byte SyncReadyWithNewPlayer = 8;
     }
 }

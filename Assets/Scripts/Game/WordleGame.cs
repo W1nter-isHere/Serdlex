@@ -5,13 +5,12 @@ namespace Game
 {
     public readonly struct WordleGame
     {
-        public static readonly WordleGame Default = new WordleGame("genna", false, 4);
+        public static readonly WordleGame Default = new WordleGame("genna", 4);
         
         public readonly string Word;
-        public readonly bool ValidateWord;
         public readonly int Chances;
 
-        public WordleGame(string word, bool validateWord, int chances)
+        public WordleGame(string word, int chances)
         {
             if (string.IsNullOrEmpty(word))
             {
@@ -22,7 +21,6 @@ namespace Game
                 Word = word.ToLower().Split(" ")[0];
             }
             
-            ValidateWord = validateWord;
             Chances = chances;
         }
 
@@ -31,9 +29,8 @@ namespace Game
             using var memoryStream = new MemoryStream(data);
             using var binaryReader = new BinaryReader(memoryStream);
             var str = binaryReader.ReadString();
-            var b = binaryReader.ReadBoolean();
             var i = binaryReader.ReadInt32();
-            return new WordleGame(str, b, i);
+            return new WordleGame(str, i);
         }
 
         public static byte[] Serialize(object type)
@@ -43,7 +40,6 @@ namespace Game
             using var memoryStream = new MemoryStream();
             using var binaryWriter = new BinaryWriter(memoryStream);
             binaryWriter.Write(obj.Word);
-            binaryWriter.Write(obj.ValidateWord);
             binaryWriter.Write(obj.Chances);
             binaryWriter.Flush();
             
