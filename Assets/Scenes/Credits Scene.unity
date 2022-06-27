@@ -485,14 +485,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Programming: winterSteve25
+  m_text: 'Programming: Caden
 
-    Game Design: Spider Sprinkles
+    Game Design: Scorpian Sprinkles
 
-    Art
-    Design: winterSteve25
+    Art Design:
+    Keydan
 
-    Art Consultant: Spider Sprinkles'
+    Art Consultant: Libra Sprinkles
+
+    Music: Spiderly Sprinkles'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1e577ec958dd0124193c785978891dcc, type: 2}
   m_sharedMaterial: {fileID: -824742602858804349, guid: 1e577ec958dd0124193c785978891dcc, type: 2}
