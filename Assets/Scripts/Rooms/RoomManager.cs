@@ -10,6 +10,8 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Utils;
+using AudioType = Utils.AudioType;
 
 namespace Rooms
 {
@@ -158,11 +160,11 @@ namespace Rooms
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count /*&& count > 1*/)
+            if (count >= _players.Count && count > 1)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();
-                GetComponent<AudioSource>().Play();
+                AudioManager.Instance.Play(AudioType.Countdown);
                 text.text = "3";
                 _startingSequence = StartGame(text);
                 StartCoroutine(_startingSequence);
@@ -171,7 +173,7 @@ namespace Rooms
             {
                 StopCoroutine(_startingSequence);
                 _startingSequence = null;
-                GetComponent<AudioSource>().Stop();
+                AudioManager.Instance.Interrupt();
                 starting.gameObject.SetActive(false);
             }
         }

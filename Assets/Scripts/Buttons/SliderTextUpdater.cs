@@ -15,7 +15,7 @@ namespace Buttons
         private void Start()
         {
             _slider = GetComponent<Slider>();
-            var strToAdd = _slider.value.ToString();
+            var strToAdd = ((int)_slider.value).ToString();
             text.text += strToAdd;
             _addedCharLength = strToAdd.Length;
         }
@@ -23,7 +23,7 @@ namespace Buttons
         public void ValueChanged()
         {
             text.text = text.text[..^_addedCharLength];
-            var strToAdd = _slider.value.ToString();
+            var strToAdd = ((int)_slider.value).ToString();
             text.text += strToAdd;
             _addedCharLength = strToAdd.Length;
         }
