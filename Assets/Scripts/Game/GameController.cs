@@ -27,14 +27,14 @@ namespace Game
         private int _chances;
         private string _chosenWord;
         private bool _checkWord;
-        
+
         private string _lastText;
         private bool _entering;
         private WordleGame _game;
 
         private BaseGameMode _gameMode;
         private WordValidationState _validationState;
-        
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Return) && !_entering)
@@ -50,18 +50,6 @@ namespace Game
             Init(GlobalData.GetOrDefault("wordleGame", () => WordleGame.Default));
         }
 
-        private void CreateRows()
-        {
-            for (var i = 0; i < _chances; i++)
-            {
-                var row = Instantiate(rowPrefab, guesses.transform);
-                for (var j = 0; j < _characters; j++)
-                {
-                    Instantiate(characterPrefab, row.transform);
-                }
-            }
-        }
-
         public void Init(WordleGame game)
         {
             _chosenWord = game.Word;
@@ -72,19 +60,35 @@ namespace Game
             _game = game;
             _lastText = "";
 
-            _gameMode = GlobalData.GetOrDefault("gameModeObject", () => new BaseGameMode());
-            _gameMode.OnInit(this, _game);
+            _gameMode = GlobalData.GetOrDefault("gameModeObject", () => GameModesRegistry.ClassicIndividuals);
             characterErrorText.GetComponent<TextMeshProUGUI>().text = "Enter at least " + _characters + " characters";
-            
+            _gameMode.OnInit(this, _game);
+
             CreateRows();
+        }
+
+        private void CreateRows()
+        {
+            for (var i = 0; i < _chances; i++)
+            {
+                var row = Instantiate(rowPrefab, guesses.transform);
+
+                for (var j = 0; j < _characters; j++)
+                {
+                    Instantiate(characterPrefab, row.transform);
+                }
+
+                if (_game.Tries == 0 || i >= _game.Tries) continue;
+                InitializeRow(row, _game.Guesses[i]);
+            }
         }
 
         public IEnumerator EnterWord()
         {
             _entering = true;
-            
+
             var word = _lastText.ToLower().Replace(" ", "");
-            
+
             textField.text = "";
 
             yield return _gameMode.OnWordEnter(this, word);
@@ -101,7 +105,7 @@ namespace Game
                 yield return new WaitForSeconds(0.2f);
             }
         }
-        
+
         public void CheckWord(string word)
         {
             if (_checkWord)
@@ -118,7 +122,7 @@ namespace Game
         {
             _validationState = WordValidationState.Validating;
             yield return _gameMode.IsWordValid(this, word);
-            
+
             switch (_validationState)
             {
                 case WordValidationState.Valid:
@@ -148,7 +152,9 @@ namespace Game
                 var character = row.transform.GetChild(i).GetComponent<Character>();
                 var currentChar = word[i];
                 var containsCurChar = checkedIndices.ContainsKey(currentChar);
-                var nextCurChar = containsCurChar ? _chosenWord.IndexOf(currentChar, checkedIndices[currentChar] + 1) : -1;
+                var nextCurChar = containsCurChar
+                    ? _chosenWord.IndexOf(currentChar, checkedIndices[currentChar] + 1)
+                    : -1;
 
                 if (currentChar == _chosenWord[i])
                 {
@@ -158,8 +164,9 @@ namespace Game
                 else if (_chosenWord.Contains(currentChar) && (!containsCurChar || nextCurChar != -1))
                 {
                     var currIndex = _chosenWord.IndexOf(currentChar);
-                    
-                    if (_chosenWord[currIndex] == word[currIndex] || (containsCurChar && _chosenWord[nextCurChar] == word[nextCurChar]))
+
+                    if (_chosenWord[currIndex] == word[currIndex] ||
+                        (containsCurChar && _chosenWord[nextCurChar] == word[nextCurChar]))
                     {
                         character.Gray();
                         yield return new WaitForSeconds(0.2f);
@@ -179,14 +186,14 @@ namespace Game
             }
 
             _entering = false;
-            
+
             if (successes == _characters)
             {
                 win.gameObject.SetActive(true);
                 win.GameOver();
                 yield break;
             }
-            
+
             _game.Tries++;
 
             if (_game.Tries >= _chances)
@@ -197,22 +204,80 @@ namespace Game
             }
         }
 
+        public IEnumerator ShowObject(CanvasGroup canvasGroup, float time)
+        {
+            canvasGroup.gameObject.SetActive(true);
+            LeanTween.value(gameObject, f => canvasGroup.alpha = f, 0, 1, time);
+            yield return new WaitForSeconds(time);
+        }
+
+        public IEnumerator DisableObject(CanvasGroup canvasGroup, float time)
+        {
+            LeanTween.value(gameObject, f => canvasGroup.alpha = f, 1, 0, time);
+            yield return new WaitForSeconds(time);
+            canvasGroup.gameObject.SetActive(false);
+        }
+
+        public IEnumerator ShowBriefly(CanvasGroup canvasGroup, float transitionTime, float holdTime = 2f)
+        {
+            yield return ShowObject(canvasGroup, transitionTime);
+            yield return new WaitForSeconds(holdTime);
+            yield return DisableObject(canvasGroup, transitionTime);
+        }
+
         public IEnumerator ShowNotEnoughCharactersError()
         {
-            LeanTween.value(gameObject, f => characterErrorText.alpha = f, 0, 1, 0.5f);
-            yield return new WaitForSeconds(2f);
-            LeanTween.value(gameObject, f => characterErrorText.alpha = f, 1, 0, 0.5f);
+            yield return ShowBriefly(characterErrorText, 0.5f);
             yield return new WaitForSeconds(0.5f);
             _entering = false;
         }
 
         public IEnumerator ShowNotValidWordError()
         {
-            LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 0, 1, 0.5f);
-            yield return new WaitForSeconds(2.5f);
-            LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 1, 0, 0.5f);
+            yield return ShowBriefly(invalidWordErrorText, 0.5f);
             yield return new WaitForSeconds(0.5f);
             _entering = false;
+        }
+
+        public void InitializeRow(GameObject row, string word)
+        {
+            var checkedIndices = new Dictionary<char, int>();
+
+            for (var i = 0; i < _characters; i++)
+            {
+                var character = row.transform.GetChild(i).GetComponent<Character>();
+                var currentChar = word[i];
+                var containsCurChar = checkedIndices.ContainsKey(currentChar);
+                var nextCurChar = containsCurChar
+                    ? _chosenWord.IndexOf(currentChar, checkedIndices[currentChar] + 1)
+                    : -1;
+                
+                character.SetText(currentChar.ToString());
+
+                if (currentChar == _chosenWord[i])
+                {
+                    character.Green();
+                }
+                else if (_chosenWord.Contains(currentChar) && (!containsCurChar || nextCurChar != -1))
+                {
+                    var currIndex = _chosenWord.IndexOf(currentChar);
+
+                    if (_chosenWord[currIndex] == word[currIndex] ||
+                        (containsCurChar && _chosenWord[nextCurChar] == word[nextCurChar]))
+                    {
+                        character.Gray();
+                        continue;
+                    }
+
+                    character.Yellow();
+                    checkedIndices.Remove(currentChar);
+                    checkedIndices.Add(currentChar, containsCurChar ? nextCurChar : currIndex);
+                }
+                else
+                {
+                    character.Gray();
+                }
+            }
         }
 
         public WordleGame GetCurrentGame()
@@ -223,8 +288,8 @@ namespace Game
         public void SetValidationState(WordValidationState state)
         {
             _validationState = state;
-        } 
-        
+        }
+
         public void OnTextValueChanged(string value)
         {
             if (value.Length > _characters)
@@ -232,7 +297,7 @@ namespace Game
                 textField.text = _lastText;
                 return;
             }
-            
+
             _lastText = value;
         }
     }

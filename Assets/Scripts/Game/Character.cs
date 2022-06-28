@@ -9,7 +9,7 @@ namespace Game
         private Image _backgroundImage;
         [SerializeField] private TextMeshProUGUI text;
         
-        private void Start()
+        private void Awake()
         {
             _backgroundImage = GetComponent<Image>();
         }

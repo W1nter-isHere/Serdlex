@@ -58,9 +58,7 @@ namespace Rooms
         private void StartGame()
         {
             _transitioning = true;
-            
-            _myGame.Encrypt();
-            _wordles.ForEach(game => game.Encrypt());
+
             _wordles.Sort((game1, game2) => StringComparer.InvariantCulture.Compare(game1.Word, game2.Word));
             var myGameIndex = _wordles.IndexOf(_myGame);
             
@@ -69,7 +67,7 @@ namespace Rooms
                 throw new Exception("Something went wrong in encryption sorting at word passing phase");
             }
 
-            GlobalData.Set("wordleGame", myGameIndex == 0 ? _wordles.Last().Decrypt() : _wordles[myGameIndex-1].Decrypt());
+            GlobalData.Set("wordleGame", myGameIndex == 0 ? _wordles.Last() : _wordles[myGameIndex-1]);
             SceneTransitioner.Instance.TransitionToScene(2);
         }
         

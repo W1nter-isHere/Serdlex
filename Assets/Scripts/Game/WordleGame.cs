@@ -37,17 +37,6 @@ namespace Game
         public WordleGame(WordleGame game) : this(game.Word, game.TotalChances, game.ValidateWord)
         {
         }
-        
-        public void Encrypt()
-        {
-            Word = Word.Replace("a", "u").Replace("e", "i").Replace("l", "t");
-        }
-
-        public WordleGame Decrypt()
-        {
-            Word = Word.Replace("t", "l").Replace("i", "e").Replace("u", "a");
-            return this;
-        }
 
         public static object Deserialize(byte[] data)
         {

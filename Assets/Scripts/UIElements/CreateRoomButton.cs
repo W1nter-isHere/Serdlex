@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Linq;
+using Game.GameModes;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
@@ -12,7 +15,13 @@ namespace UIElements
         [SerializeField] private TMP_InputField nameInput;
         [SerializeField] private TMP_InputField roomName;
         [SerializeField] private CanvasGroup errorMessage;
-        
+
+        private void Start()
+        {
+            gameMode.ClearOptions();
+            gameMode.AddOptions(GameModesRegistry.GameModes.Select(mode => mode.DisplayName).ToList());
+        }
+
         public void CreateRoom()
         {
             if (string.IsNullOrEmpty(nameInput.text) || string.IsNullOrEmpty(roomName.text))

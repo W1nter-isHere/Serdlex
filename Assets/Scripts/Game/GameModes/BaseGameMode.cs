@@ -7,6 +7,24 @@ namespace Game.GameModes
 {
     public class BaseGameMode
     {
+
+        public readonly string DisplayName;
+
+        public BaseGameMode(string displayName)
+        {
+            DisplayName = displayName;
+        }
+
+        public virtual void OnInit(GameController controller, WordleGame game)
+        {
+            
+        }
+
+        public virtual IEnumerator OnWordEnter(GameController controller, string word)
+        {
+            yield return controller.ShowGuessedWord(word);
+        }
+
         public virtual IEnumerator OnWordCheck(GameController controller, string word)
         {
             if (word.Length < controller.GetCurrentGame().CharactersCount)
@@ -16,11 +34,6 @@ namespace Game.GameModes
             }
 
             controller.CheckWord(word);
-        }
-
-        public virtual IEnumerator OnWordEnter(GameController controller, string word)
-        {
-            yield return controller.ShowGuessedWord(word);
         }
 
         public virtual IEnumerator OnWordFinished(GameController controller, string word)
@@ -43,10 +56,6 @@ namespace Game.GameModes
             
             var data = JsonConvert.DeserializeObject<dynamic>(dataStr);
             controller.SetValidationState(data is JArray ? WordValidationState.Valid : WordValidationState.NotValid);
-        }
-
-        public virtual void OnInit(GameController controller, WordleGame game)
-        {
         }
     }
 }

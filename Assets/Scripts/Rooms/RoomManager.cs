@@ -199,11 +199,8 @@ namespace Rooms
             text.text = "1";
             yield return new WaitForSeconds(3f);
 
-            if (_gameMode == GameModeTypes.Individuals)
-            {
-                GlobalData.Set("gameModeObject", new BaseGameMode());
-                SceneTransitioner.Instance.TransitionToScene(8);
-            }
+            GlobalData.Set("gameModeObject", GameModesRegistry.GameModes[_gameMode]);
+            SceneTransitioner.Instance.TransitionToScene(8);
         }
 
         public void Ready()

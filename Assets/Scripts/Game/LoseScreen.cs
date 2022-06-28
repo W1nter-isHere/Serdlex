@@ -18,7 +18,7 @@ namespace Game
             foreach (var character in word)
             {
                 wordWas.text += character;
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.35f);
             }
         }
     }
