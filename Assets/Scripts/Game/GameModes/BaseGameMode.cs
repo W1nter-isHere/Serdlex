@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Rooms;
 using UnityEngine.Networking;
 
 namespace Game.GameModes
@@ -15,6 +16,11 @@ namespace Game.GameModes
             DisplayName = displayName;
         }
 
+        public virtual void OnGameStart(RoomManager roomManager, int chances, bool validateWord)
+        {
+            SceneTransitioner.Instance.TransitionToScene(8);
+        }
+        
         public virtual void OnInit(GameController controller, WordleGame game)
         {
             
@@ -22,18 +28,18 @@ namespace Game.GameModes
 
         public virtual IEnumerator OnWordEnter(GameController controller, string word)
         {
-            yield return controller.ShowGuessedWord(word);
+            yield return controller.StartCoroutine(controller.ShowGuessedWord(word));
         }
 
         public virtual IEnumerator OnWordCheck(GameController controller, string word)
         {
             if (word.Length < controller.GetCurrentGame().CharactersCount)
             {
-                yield return controller.ShowNotEnoughCharactersError();
+                yield return controller.StartCoroutine(controller.ShowNotEnoughCharactersError());
                 yield break;
             }
 
-            controller.CheckWord(word);
+            yield return controller.CheckWord(word);
         }
 
         public virtual IEnumerator OnWordFinished(GameController controller, string word)
@@ -56,6 +62,11 @@ namespace Game.GameModes
             
             var data = JsonConvert.DeserializeObject<dynamic>(dataStr);
             controller.SetValidationState(data is JArray ? WordValidationState.Valid : WordValidationState.NotValid);
+        }
+
+        public virtual bool IsEnoughPlayers(int playerCount)
+        {
+            return playerCount > 1;
         }
     }
 }

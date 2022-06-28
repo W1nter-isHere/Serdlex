@@ -2,11 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using Game.GameModes;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using Utils;
 
 namespace Game
@@ -91,9 +88,9 @@ namespace Game
 
             textField.text = "";
 
-            yield return _gameMode.OnWordEnter(this, word);
-            yield return _gameMode.OnWordCheck(this, word);
-            yield return _gameMode.OnWordFinished(this, word);
+            yield return StartCoroutine(_gameMode.OnWordEnter(this, word));
+            yield return StartCoroutine(_gameMode.OnWordCheck(this, word));
+            yield return StartCoroutine(_gameMode.OnWordFinished(this, word));
         }
 
         public IEnumerator ShowGuessedWord(string word)
@@ -106,22 +103,22 @@ namespace Game
             }
         }
 
-        public void CheckWord(string word)
+        public IEnumerator CheckWord(string word)
         {
             if (_checkWord)
             {
-                StartCoroutine(RawValidateWord(word));
+                yield return StartCoroutine(RawValidateWord(word));
             }
             else
             {
-                StartCoroutine(RawTestWord(word));
+                yield return StartCoroutine(RawTestWord(word));
             }
         }
 
         private IEnumerator RawValidateWord(string word)
         {
             _validationState = WordValidationState.Validating;
-            yield return _gameMode.IsWordValid(this, word);
+            yield return StartCoroutine(_gameMode.IsWordValid(this, word));
 
             switch (_validationState)
             {
@@ -185,6 +182,7 @@ namespace Game
                 yield return new WaitForSeconds(0.2f);
             }
 
+            _game.Guesses.Add(word);
             _entering = false;
 
             if (successes == _characters)
@@ -279,7 +277,7 @@ namespace Game
                 }
             }
         }
-
+        
         public WordleGame GetCurrentGame()
         {
             return _game;

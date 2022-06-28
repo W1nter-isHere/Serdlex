@@ -54,6 +54,11 @@ namespace Rooms.Chat
 
         public void OnConnected()
         {
+            if (!PhotonNetwork.InRoom)
+            {
+                _client.Disconnect();   
+                return;
+            }
             _channelName = PhotonNetwork.CurrentRoom.Name + "_chat";
             _client.Subscribe(_channelName);
         }

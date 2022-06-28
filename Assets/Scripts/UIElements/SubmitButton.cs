@@ -1,5 +1,4 @@
-﻿using ExitGames.Client.Photon;
-using Game;
+﻿using Game;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,8 +16,6 @@ namespace UIElements
 
         private void Start()
         {
-            PhotonPeer.RegisterType(typeof(WordleGame), 0, WordleGame.Serialize, WordleGame.Deserialize);
-
             _timer = 90;
             slider.maxValue = 90;
             slider.minValue = 0;

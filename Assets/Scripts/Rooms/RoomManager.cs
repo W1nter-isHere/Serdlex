@@ -30,13 +30,18 @@ namespace Rooms
         private Dictionary<string, KeyValuePair<int, GameObject>> _players;
         private List<string> _readiedPlayers;
         private int _gameMode;
+        private BaseGameMode _gameModeObject;
         [CanBeNull] private IEnumerator _startingSequence;
 
         private void Start()
         {
+            PhotonPeer.RegisterType(typeof(WordleGame), 0, WordleGame.Serialize, WordleGame.Deserialize);
+
             _players = new Dictionary<string, KeyValuePair<int, GameObject>>();
             _readiedPlayers = new List<string>();
             _gameMode = GlobalData.GetOrDefault("currGameMode", () => GameModeTypes.Invalid);
+
+            _gameModeObject = _gameMode == -1 ? null : GameModesRegistry.GameModes[_gameMode];
             
             starting.gameObject.SetActive(false);
             roomCode.text = "Room Code: " + GlobalData.GetOrDefault("currRoomCode", () => "!ERROR!");
@@ -49,7 +54,6 @@ namespace Rooms
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
             var playerName = GlobalData.GetOrDefault("currPlayerName", () => "Unknown Player");
             PhotonNetwork.RaiseEvent(PhotonEvents.NewPlayerJoinedRoom, new [] {playerName}, raiseEventOptions, SendOptions.SendReliable);
-            // TODO is this the right number?
             PlayerJoined(playerName, PhotonNetwork.LocalPlayer.ActorNumber);
         }
 
@@ -172,7 +176,7 @@ namespace Rooms
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count && count > 1)
+            if (count >= _players.Count && _gameModeObject.IsEnoughPlayers(count))
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();
@@ -199,8 +203,8 @@ namespace Rooms
             text.text = "1";
             yield return new WaitForSeconds(3f);
 
-            GlobalData.Set("gameModeObject", GameModesRegistry.GameModes[_gameMode]);
-            SceneTransitioner.Instance.TransitionToScene(8);
+            GlobalData.Set("gameModeObject", _gameModeObject);
+            _gameModeObject.OnGameStart(this, (int) chancesSlider.value, toggle.isOn);
         }
 
         public void Ready()

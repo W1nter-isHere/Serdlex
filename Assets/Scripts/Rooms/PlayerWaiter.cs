@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using ExitGames.Client.Photon;
 using Game;
 using Photon.Pun;
@@ -76,7 +75,7 @@ namespace Rooms
             StopCoroutine(_coroutine);
         }
 
-        public void OnEvent(EventData photonEvent)
+        public virtual void OnEvent(EventData photonEvent)
         {
             var c = photonEvent.Code;
 

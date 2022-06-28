@@ -34,8 +34,14 @@ namespace Game
             Guesses = new List<string>();
         }
 
-        public WordleGame(WordleGame game) : this(game.Word, game.TotalChances, game.ValidateWord)
+        public WordleGame(WordleGame game)
         {
+            Word = game.Word;
+            Tries = game.Tries;
+            Guesses = game.Guesses;
+            CharactersCount = game.CharactersCount;
+            ValidateWord = game.ValidateWord;
+            TotalChances = game.TotalChances;
         }
 
         public static object Deserialize(byte[] data)
@@ -43,9 +49,22 @@ namespace Game
             using var memoryStream = new MemoryStream(data);
             using var binaryReader = new BinaryReader(memoryStream);
             var str = binaryReader.ReadString();
+            var tries = binaryReader.ReadInt32();
             var i = binaryReader.ReadInt32();
             var b = binaryReader.ReadBoolean();
-            return new WordleGame(str, i, b);
+
+            var guessesCount = binaryReader.ReadInt32();
+            var guesses = new List<string>();
+            for (var j = 0; j < guessesCount; j++)
+            {
+                guesses.Add(binaryReader.ReadString());
+            }
+
+            return new WordleGame(str, i, b)
+            {
+                Tries = tries,
+                Guesses = guesses
+            };
         }
 
         public static byte[] Serialize(object type)
@@ -55,8 +74,16 @@ namespace Game
             using var memoryStream = new MemoryStream();
             using var binaryWriter = new BinaryWriter(memoryStream);
             binaryWriter.Write(obj.Word);
+            binaryWriter.Write(obj.Tries);
             binaryWriter.Write(obj.TotalChances);
             binaryWriter.Write(obj.ValidateWord);
+
+            binaryWriter.Write(obj.Guesses.Count);
+            foreach (var guess in obj.Guesses)
+            {
+                binaryWriter.Write(guess);
+            }
+            
             binaryWriter.Flush();
             
             return memoryStream.ToArray();

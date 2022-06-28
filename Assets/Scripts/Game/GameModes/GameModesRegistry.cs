@@ -7,16 +7,17 @@ namespace Game.GameModes
         public static readonly List<BaseGameMode> GameModes;
 
         public static readonly BaseGameMode ClassicIndividuals;
-        public static readonly BaseGameMode PartyIndividuals;
+        public static readonly BaseGameMode JumboIndividuals;
 
         static GameModesRegistry()
         {
             GameModes = new List<BaseGameMode>();
             
             ClassicIndividuals = new BaseGameMode("Classic Mode (Individual)");
-            // TODO  PartyIndividuals
-            
+            JumboIndividuals = new JumboGameMode("Jumbo Mode (Individual)");
+
             GameModes.Add(ClassicIndividuals);
+            GameModes.Add(JumboIndividuals);
         }
     }
 }
