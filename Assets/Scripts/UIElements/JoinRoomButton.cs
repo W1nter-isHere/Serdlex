@@ -4,26 +4,25 @@ using TMPro;
 using UnityEngine;
 using Utils;
 
-namespace Buttons
+namespace UIElements
 {
-    public class CreateRoomButton : MonoBehaviourPunCallbacks
+    public class JoinRoomButton : MonoBehaviourPunCallbacks
     {
-        [SerializeField] private TMP_Dropdown gameMode;
         [SerializeField] private TMP_InputField nameInput;
-        [SerializeField] private TMP_InputField roomName;
+        [SerializeField] private TMP_InputField codeInput;
         [SerializeField] private CanvasGroup errorMessage;
-        
-        public void CreateRoom()
+
+        public void Connect()
         {
-            if (string.IsNullOrEmpty(nameInput.text) || string.IsNullOrEmpty(roomName.text))
+            if (string.IsNullOrEmpty(nameInput.text) || string.IsNullOrEmpty(codeInput.text))
             {
                 StartCoroutine(Error());
                 return;
             }
-            
-            PhotonNetwork.CreateRoom(roomName.text);
-        }
 
+            PhotonNetwork.JoinRoom(codeInput.text);
+        }
+        
         private IEnumerator Error()
         {
             LeanTween.value(gameObject, f => errorMessage.alpha = f, 0, 1, 0.5f);
@@ -36,9 +35,7 @@ namespace Buttons
             GlobalData.ClearData();
             
             GlobalData.Set("currPlayerName", nameInput.text);
-            GlobalData.Set("currRoomCode", roomName.text);
-            GlobalData.Set("currGameMode", gameMode.value);
-            
+            GlobalData.Set("currRoomCode", codeInput.text);
             SceneTransitioner.Instance.TransitionToScene(7);
         }
     }

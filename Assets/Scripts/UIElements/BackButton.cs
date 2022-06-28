@@ -1,7 +1,7 @@
 ﻿using Photon.Pun;
 using Photon.Realtime;
 
-namespace Buttons
+namespace UIElements
 {
     public class BackButton : MonoBehaviourPunCallbacks
     {

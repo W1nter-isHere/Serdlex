@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Buttons
+namespace UIElements
 {
     public class PlayAgainButton : MonoBehaviour
     {
