@@ -15,6 +15,13 @@ public class Settings : MonoBehaviour
     [SerializeField] private Toggle fullScreenToggle;
     [SerializeField] private TMP_Dropdown resolution;
 
+    private void MasterSliderChanged(float value)
+    {
+        audioMixer.SetFloat("MasterVolume", value);
+        PlayerPrefs.SetFloat("MasterVolume", value);
+        PlayerPrefs.Save();
+    }
+
     private void Start()
     {
         masterAudioSlider.onValueChanged.AddListener(MasterSliderChanged);
@@ -31,16 +38,9 @@ public class Settings : MonoBehaviour
         uiAudioSlider.value = PlayerPrefs.GetFloat("UIVolume", 1);
 
         fullScreenToggle.isOn = PlayerPrefs.GetInt("FullScreen") == 1;
-        resolution.value = PlayerPrefs.GetInt("Resolution");
+        resolution.value = PlayerPrefs.GetInt("ResolutionIndex");
     }
 
-    private void MasterSliderChanged(float value)
-    {
-        audioMixer.SetFloat("MasterVolume", value);
-        PlayerPrefs.SetFloat("MasterVolume", value);
-        PlayerPrefs.Save();
-    }
-    
     private void SfxSliderChanged(float value)
     {
         audioMixer.SetFloat("SFXVolume", value);
@@ -75,7 +75,9 @@ public class Settings : MonoBehaviour
         var w = int.Parse(option.Split('x')[0]);
         var h = int.Parse(option.Split('x')[1]);
         Screen.SetResolution(w, h, fullScreenToggle.isOn);
-        PlayerPrefs.SetInt("Resolution", index);
+        PlayerPrefs.SetInt("ResolutionIndex", index);
+        PlayerPrefs.SetInt("ResolutionWidth", w);
+        PlayerPrefs.SetInt("ResolutionHeight", h);
         PlayerPrefs.Save();
     }
 }

@@ -13,6 +13,11 @@ namespace Buttons
                 {
                     PhotonNetwork.LeaveRoom();
                 }
+
+                if (PhotonNetwork.InLobby)
+                {
+                    PhotonNetwork.LeaveLobby();
+                }
                 PhotonNetwork.Disconnect();
             }
             else

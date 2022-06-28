@@ -45,8 +45,11 @@ namespace Rooms
             GlobalData.Set("roomChances", 6f);
 
             // add this
-            var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.All};
-            PhotonNetwork.RaiseEvent(PhotonEvents.NewPlayerJoinedRoom, new [] {GlobalData.GetOrDefault("currPlayerName", () => "Unknown Player")}, raiseEventOptions, SendOptions.SendReliable);
+            var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
+            var playerName = GlobalData.GetOrDefault("currPlayerName", () => "Unknown Player");
+            PhotonNetwork.RaiseEvent(PhotonEvents.NewPlayerJoinedRoom, new [] {playerName}, raiseEventOptions, SendOptions.SendReliable);
+            // TODO is this the right number?
+            PlayerJoined(playerName, PhotonNetwork.LocalPlayer.ActorNumber);
         }
 
         private void PlayerJoined(string p, int sender)
@@ -74,19 +77,27 @@ namespace Rooms
                 case PhotonEvents.NewPlayerJoinedRoom:
                 {
                     var p = (string[]) photonEvent.CustomData;
-
+      
                     foreach (var p1 in p)
                     {
                         PlayerJoined(p1, actorNum);
                     }
 
                     var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
+                    
+                    // tells new player the players already in the room
                     PhotonNetwork.RaiseEvent(PhotonEvents.PlayersInRoom, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
+                    // tells new player the readied players in the room
                     PhotonNetwork.RaiseEvent(PhotonEvents.SyncReadyWithNewPlayer, _readiedPlayers.ToArray(), raiseEventOptions, SendOptions.SendReliable);
-
+                    // tells new player the room chance slider setting
+                    PhotonNetwork.RaiseEvent(PhotonEvents.RoomChancesSliderChanged, chancesSlider.value, raiseEventOptions, SendOptions.SendReliable);
+                    // tells new player the room validate word toggle setting
+                    PhotonNetwork.RaiseEvent(PhotonEvents.ValidateWordToggleChanged, toggle.isOn, raiseEventOptions, SendOptions.SendReliable);
+                    
+                    // sync game mode if this has valid game mode
                     if (_gameMode == GameModes.Invalid) break;
                     PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
-
+                    
                     break;
                 }
                 case PhotonEvents.PlayersInRoom:
