@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Game.GameModes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
@@ -27,9 +28,12 @@ namespace Game
         private string _chosenWord;
         private bool _checkWord;
         
-        private int _chance;
         private string _lastText;
         private bool _entering;
+        private WordleGame _game;
+
+        private BaseGameMode _gameMode;
+        private WordValidationState _validationState;
         
         private void Update()
         {
@@ -46,22 +50,6 @@ namespace Game
             Init(GlobalData.GetOrDefault("wordleGame", () => WordleGame.Default));
         }
 
-        public void Init(WordleGame game)
-        {
-            _chosenWord = game.Word;
-            _characters = _chosenWord.Length;
-            _chances = game.Chances;
-
-            _checkWord = GlobalData.GetOrDefault("gameValidateWord", () => false);
-            
-            _chance = 0;
-            _lastText = "";
-
-            characterErrorText.GetComponent<TextMeshProUGUI>().text = "Enter at least " + _characters + " characters";
-            
-            CreateRows();
-        }
-
         private void CreateRows()
         {
             for (var i = 0; i < _chances; i++)
@@ -74,78 +62,84 @@ namespace Game
             }
         }
 
-        private IEnumerator EnterWord()
+        public void Init(WordleGame game)
+        {
+            _chosenWord = game.Word;
+            _characters = game.CharactersCount;
+            _chances = game.TotalChances;
+            _checkWord = game.ValidateWord;
+
+            _game = game;
+            _lastText = "";
+
+            _gameMode = GlobalData.GetOrDefault("gameModeObject", () => new BaseGameMode());
+            _gameMode.OnInit(this, _game);
+            characterErrorText.GetComponent<TextMeshProUGUI>().text = "Enter at least " + _characters + " characters";
+            
+            CreateRows();
+        }
+
+        public IEnumerator EnterWord()
         {
             _entering = true;
             
             var word = _lastText.ToLower().Replace(" ", "");
-
-            if (word.Length < _characters)
-            {
-                LeanTween.value(gameObject, f => characterErrorText.alpha = f, 0, 1, 0.5f);
-                yield return new WaitForSeconds(2f);
-                LeanTween.value(gameObject, f => characterErrorText.alpha = f, 1, 0, 0.5f);
-                _entering = false;
-                yield break;
-            }
             
             textField.text = "";
 
-            var row = guesses.transform.GetChild(_chance).gameObject;
+            yield return _gameMode.OnWordEnter(this, word);
+            yield return _gameMode.OnWordCheck(this, word);
+            yield return _gameMode.OnWordFinished(this, word);
+        }
+
+        public IEnumerator ShowGuessedWord(string word)
+        {
+            var row = guesses.transform.GetChild(_game.Tries).gameObject;
             for (var i = 0; i < _characters; i++)
             {
                 row.transform.GetChild(i).GetComponent<Character>().SetText(word[i].ToString());
                 yield return new WaitForSeconds(0.2f);
             }
-            
+        }
+        
+        public void CheckWord(string word)
+        {
             if (_checkWord)
             {
-                StartCoroutine(ValidateWord(word));
+                StartCoroutine(RawValidateWord(word));
             }
             else
             {
-                StartCoroutine(TestWord(word));
+                StartCoroutine(RawTestWord(word));
             }
         }
 
-        private IEnumerator ValidateWord(string word)
+        private IEnumerator RawValidateWord(string word)
         {
-            var uwr = UnityWebRequest.Get("https://api.dictionaryapi.dev/api/v2/entries/en/" + word);
-            yield return uwr.SendWebRequest();
+            _validationState = WordValidationState.Validating;
+            yield return _gameMode.IsWordValid(this, word);
             
-            if (uwr.result == UnityWebRequest.Result.ConnectionError)
+            switch (_validationState)
             {
-                yield break;
-            }
-
-            var dataStr = uwr.downloadHandler.text;
-
-            if (string.IsNullOrEmpty(dataStr)) yield break;
-            
-            var data = JsonConvert.DeserializeObject<dynamic>(dataStr);
-
-            if (data is JArray)
-            {
-                StartCoroutine(TestWord(word));
-            }
-            else
-            {
-                LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 0, 1, 0.5f);
-                yield return new WaitForSeconds(2.5f);
-                LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 1, 0, 0.5f);
-                yield return new WaitForSeconds(0.5f);
-                _entering = false;
+                case WordValidationState.Valid:
+                    StartCoroutine(RawTestWord(word));
+                    break;
+                case WordValidationState.NotValid:
+                    StartCoroutine(ShowNotValidWordError());
+                    break;
+                default:
+                    throw new Exception("Validation state must not be Validating after IsWordValid is called!");
             }
         }
 
-        private IEnumerator TestWord(string word)
+        private IEnumerator RawTestWord(string word)
         {
             if (_characters != _chosenWord.Length)
             {
                 throw new Exception("This should not happen!");
             }
 
-            var row = guesses.transform.GetChild(_chance).gameObject;
+            var row = guesses.transform.GetChild(_game.Tries).gameObject;
             var checkedIndices = new Dictionary<char, int>();
             var successes = 0;
 
@@ -193,9 +187,9 @@ namespace Game
                 yield break;
             }
             
-            _chance++;
+            _game.Tries++;
 
-            if (_chance >= _chances)
+            if (_game.Tries >= _chances)
             {
                 lose.gameObject.SetActive(true);
                 lose.WordWas(_chosenWord);
@@ -203,6 +197,34 @@ namespace Game
             }
         }
 
+        public IEnumerator ShowNotEnoughCharactersError()
+        {
+            LeanTween.value(gameObject, f => characterErrorText.alpha = f, 0, 1, 0.5f);
+            yield return new WaitForSeconds(2f);
+            LeanTween.value(gameObject, f => characterErrorText.alpha = f, 1, 0, 0.5f);
+            yield return new WaitForSeconds(0.5f);
+            _entering = false;
+        }
+
+        public IEnumerator ShowNotValidWordError()
+        {
+            LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 0, 1, 0.5f);
+            yield return new WaitForSeconds(2.5f);
+            LeanTween.value(gameObject, f => invalidWordErrorText.alpha = f, 1, 0, 0.5f);
+            yield return new WaitForSeconds(0.5f);
+            _entering = false;
+        }
+
+        public WordleGame GetCurrentGame()
+        {
+            return _game;
+        }
+
+        public void SetValidationState(WordValidationState state)
+        {
+            _validationState = state;
+        } 
+        
         public void OnTextValueChanged(string value)
         {
             if (value.Length > _characters)

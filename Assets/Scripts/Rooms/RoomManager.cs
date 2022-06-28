@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ExitGames.Client.Photon;
 using Game;
+using Game.GameModes;
 using JetBrains.Annotations;
 using Photon.Pun;
 using Photon.Realtime;
@@ -35,7 +36,7 @@ namespace Rooms
         {
             _players = new Dictionary<string, KeyValuePair<int, GameObject>>();
             _readiedPlayers = new List<string>();
-            _gameMode = GlobalData.GetOrDefault("currGameMode", () => GameModes.Invalid);
+            _gameMode = GlobalData.GetOrDefault("currGameMode", () => GameModeTypes.Invalid);
             
             starting.gameObject.SetActive(false);
             roomCode.text = "Room Code: " + GlobalData.GetOrDefault("currRoomCode", () => "!ERROR!");
@@ -95,7 +96,7 @@ namespace Rooms
                     PhotonNetwork.RaiseEvent(PhotonEvents.ValidateWordToggleChanged, toggle.isOn, raiseEventOptions, SendOptions.SendReliable);
                     
                     // sync game mode if this has valid game mode
-                    if (_gameMode == GameModes.Invalid) break;
+                    if (_gameMode == GameModeTypes.Invalid) break;
                     PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
                     
                     break;
@@ -198,8 +199,9 @@ namespace Rooms
             text.text = "1";
             yield return new WaitForSeconds(3f);
 
-            if (_gameMode == GameModes.Individuals)
+            if (_gameMode == GameModeTypes.Individuals)
             {
+                GlobalData.Set("gameModeObject", new BaseGameMode());
                 SceneTransitioner.Instance.TransitionToScene(8);
             }
         }

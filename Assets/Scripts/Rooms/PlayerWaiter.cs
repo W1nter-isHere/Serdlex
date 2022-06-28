@@ -26,7 +26,6 @@ namespace Rooms
         {
             _coroutine = StartCoroutine(ChangeText());
             _wordles = new List<WordleGame>();
-            
             _myGame = new WordleGame(GlobalData.GetOrDefault("submittedGame", () => WordleGame.Default));
             var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.All};
             PhotonNetwork.RaiseEvent(PhotonEvents.GameSubmitted, _myGame, raiseEventOptions, SendOptions.SendReliable);

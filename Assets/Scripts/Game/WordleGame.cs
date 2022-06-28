@@ -1,15 +1,21 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace Game
 {
     public class WordleGame
     {
-        public static readonly WordleGame Default = new WordleGame("genna", 4);
-        
-        public string Word;
-        public readonly int Chances;
+        public static WordleGame Default => new WordleGame("genna", 4, false);
 
-        public WordleGame(string word, int chances)
+        public string Word;
+        public int Tries;
+        public List<string> Guesses;
+
+        public readonly int CharactersCount;
+        public readonly bool ValidateWord;
+        public readonly int TotalChances;
+
+        public WordleGame(string word, int totalChances, bool validateWord)
         {
             if (string.IsNullOrEmpty(word))
             {
@@ -20,10 +26,15 @@ namespace Game
                 Word = word.ToLower().Split(" ")[0];
             }
             
-            Chances = chances;
+            TotalChances = totalChances;
+            ValidateWord = validateWord;
+            CharactersCount = Word.Length;
+            
+            Tries = 0;
+            Guesses = new List<string>();
         }
 
-        public WordleGame(WordleGame game) : this(game.Word, game.Chances)
+        public WordleGame(WordleGame game) : this(game.Word, game.TotalChances, game.ValidateWord)
         {
         }
         
@@ -44,7 +55,8 @@ namespace Game
             using var binaryReader = new BinaryReader(memoryStream);
             var str = binaryReader.ReadString();
             var i = binaryReader.ReadInt32();
-            return new WordleGame(str, i);
+            var b = binaryReader.ReadBoolean();
+            return new WordleGame(str, i, b);
         }
 
         public static byte[] Serialize(object type)
@@ -54,7 +66,8 @@ namespace Game
             using var memoryStream = new MemoryStream();
             using var binaryWriter = new BinaryWriter(memoryStream);
             binaryWriter.Write(obj.Word);
-            binaryWriter.Write(obj.Chances);
+            binaryWriter.Write(obj.TotalChances);
+            binaryWriter.Write(obj.ValidateWord);
             binaryWriter.Flush();
             
             return memoryStream.ToArray();

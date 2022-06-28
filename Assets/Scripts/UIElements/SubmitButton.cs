@@ -37,7 +37,11 @@ namespace UIElements
 
         public void Submit()
         {
-            var game = new WordleGame(word.text, (int) GlobalData.GetOrDefault("roomChances", () => 6f));
+            var game = new WordleGame(
+                word.text,
+                (int) GlobalData.GetOrDefault("roomChances", () => 6f),
+                GlobalData.GetOrDefault("gameValidateWord", () => false)
+            );
             GlobalData.Set("submittedGame", game);
             SceneTransitioner.Instance.TransitionToScene(10);
         }
