@@ -28,17 +28,18 @@ namespace Game.GameModes
 
         public virtual IEnumerator OnWordEnter(GameController controller, string word)
         {
+            if (word.Length < controller.GetCurrentGame().CharactersCount)
+            {
+                controller.SetCanProceed(false);
+                yield return controller.StartCoroutine(controller.ShowNotEnoughCharactersError());
+                yield break;
+            }
+
             yield return controller.StartCoroutine(controller.ShowGuessedWord(word));
         }
 
         public virtual IEnumerator OnWordCheck(GameController controller, string word)
         {
-            if (word.Length < controller.GetCurrentGame().CharactersCount)
-            {
-                yield return controller.StartCoroutine(controller.ShowNotEnoughCharactersError());
-                yield break;
-            }
-
             yield return controller.CheckWord(word);
         }
 
@@ -62,11 +63,6 @@ namespace Game.GameModes
             
             var data = JsonConvert.DeserializeObject<dynamic>(dataStr);
             controller.SetValidationState(data is JArray ? WordValidationState.Valid : WordValidationState.NotValid);
-        }
-
-        public virtual bool IsEnoughPlayers(int playerCount)
-        {
-            return playerCount > 1;
         }
     }
 }

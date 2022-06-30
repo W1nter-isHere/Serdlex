@@ -31,6 +31,7 @@ namespace Game
 
         private BaseGameMode _gameMode;
         private WordValidationState _validationState;
+        private bool _canProceed;
 
         private void Update()
         {
@@ -83,14 +84,22 @@ namespace Game
         public IEnumerator EnterWord()
         {
             _entering = true;
-
+            _canProceed = true;
+            
             var word = _lastText.ToLower().Replace(" ", "");
-
             textField.text = "";
-
+            
             yield return StartCoroutine(_gameMode.OnWordEnter(this, word));
-            yield return StartCoroutine(_gameMode.OnWordCheck(this, word));
-            yield return StartCoroutine(_gameMode.OnWordFinished(this, word));
+            
+            if (_canProceed)
+            {
+                yield return StartCoroutine(_gameMode.OnWordCheck(this, word));
+            }
+
+            if (_canProceed)
+            {
+                yield return StartCoroutine(_gameMode.OnWordFinished(this, word)); 
+            }
         }
 
         public IEnumerator ShowGuessedWord(string word)
@@ -226,14 +235,12 @@ namespace Game
         public IEnumerator ShowNotEnoughCharactersError()
         {
             yield return ShowBriefly(characterErrorText, 0.5f);
-            yield return new WaitForSeconds(0.5f);
             _entering = false;
         }
 
         public IEnumerator ShowNotValidWordError()
         {
             yield return ShowBriefly(invalidWordErrorText, 0.5f);
-            yield return new WaitForSeconds(0.5f);
             _entering = false;
         }
 
@@ -288,6 +295,11 @@ namespace Game
             _validationState = state;
         }
 
+        public void SetCanProceed(bool canProceed)
+        {
+            _canProceed = canProceed;
+        }
+        
         public void OnTextValueChanged(string value)
         {
             if (value.Length > _characters)

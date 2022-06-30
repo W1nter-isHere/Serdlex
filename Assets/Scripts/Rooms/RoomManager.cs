@@ -71,6 +71,8 @@ namespace Rooms
             Destroy(_players[player].Value);
             _players.Remove(player);
         }
+        
+        // TODO: 
 
         public void OnEvent(EventData photonEvent)
         {
@@ -89,7 +91,7 @@ namespace Rooms
                     }
 
                     var raiseEventOptions = new RaiseEventOptions {Receivers = ReceiverGroup.Others};
-                    
+
                     // tells new player the players already in the room
                     PhotonNetwork.RaiseEvent(PhotonEvents.PlayersInRoom, _players.Keys.Where(k => !p.Contains(k)).ToArray(), raiseEventOptions, SendOptions.SendReliable);
                     // tells new player the readied players in the room
@@ -102,7 +104,7 @@ namespace Rooms
                     // sync game mode if this has valid game mode
                     if (_gameMode == GameModeTypes.Invalid) break;
                     PhotonNetwork.RaiseEvent(PhotonEvents.InitializeGame, _gameMode, raiseEventOptions, SendOptions.SendReliable);
-                    
+
                     break;
                 }
                 case PhotonEvents.PlayersInRoom:
@@ -129,6 +131,7 @@ namespace Rooms
                     break;
                 case PhotonEvents.InitializeGame:
                     _gameMode = (int) photonEvent.CustomData;
+                    _gameModeObject = _gameMode == -1 ? null : GameModesRegistry.GameModes[_gameMode];
                     GlobalData.Set("currGameMode", _gameMode);
                     break;
                 case PhotonEvents.SyncReadyWithNewPlayer:
@@ -176,7 +179,7 @@ namespace Rooms
         private void CheckGame()
         {
             var count = _readiedPlayers.Count;
-            if (count >= _players.Count && _gameModeObject.IsEnoughPlayers(count))
+            if (count >= _players.Count && count > 1)
             {
                 starting.gameObject.SetActive(true);
                 var text = starting.GetComponentInChildren<TextMeshProUGUI>();

@@ -59,7 +59,7 @@ public class AudioManager : MonoBehaviour
     public void Interrupt(bool isMusic = false)
     {
         var source = isMusic ? musicSource : audioSource;
-git
+
         if (source.isPlaying)
         {
             source.Stop();

@@ -47,10 +47,5 @@ namespace Game.GameModes
             SceneTransitioner.Instance.TransitionToScene(10);
             yield break;
         }
-
-        public override bool IsEnoughPlayers(int playerCount)
-        {
-            return playerCount > 0;
-        }
     }
 }
